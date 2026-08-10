@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
@@ -9,7 +9,7 @@ import { MemberAppPage } from './pages/MemberAppPage';
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ToastProvider>
         <AuthProvider>
           <Routes>
@@ -33,7 +33,7 @@ export const App: React.FC = () => {
           </Routes>
         </AuthProvider>
       </ToastProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
