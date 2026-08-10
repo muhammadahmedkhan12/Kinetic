@@ -1,0 +1,24 @@
+{
+  "results": {
+    "unauth_admin_access": true,
+    "summary_200": true,
+    "admin_create_member": true,
+    "member_detail_fetch": true,
+    "member_deletion": true,
+    "record_cash_payment": false
+  },
+  "kpis": {
+    "total_members": 2,
+    "total_trainers": 5,
+    "total_payments": 11,
+    "total_assets": 4,
+    "monthly_revenue": 136.0
+  },
+  "counts": {
+    "members": 2,
+    "trainers": 5,
+    "classes": 4,
+    "assets": 4,
+    "pending_payments": 0
+  }
+}

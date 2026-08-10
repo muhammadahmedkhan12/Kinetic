@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>KINETIC | Weight Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0B0B0C;
+            color: #e1e2e4;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .font-headline {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass-card {
+            background: #121214;
+            border: 1px solid rgba(197, 168, 128, 0.15);
+        }
+
+        .gold-glow {
+            box-shadow: 0 0 15px rgba(197, 168, 128, 0.1);
+        }
+
+        .pulse-action {
+            box-shadow: 0 0 20px rgba(197, 168, 128, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .pulse-action:active {
+            transform: scale(0.96);
+            box-shadow: 0 0 10px rgba(197, 168, 128, 0.4);
+        }
+
+        @keyframes drawLine {
+            from { stroke-dashoffset: 1000; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        .animate-chart {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s ease-out forwards;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#C5A880",
+                        "on-primary": "#1C1B1C",
+                        "background": "#0B0B0C",
+                        "surface": "#121214",
+                        "on-surface": "#E1E2E4",
+                        "on-surface-variant": "#919094",
+                        "outline": "#46464A"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "24px",
+                        "stack-sm": "4px",
+                        "safe-margin": "20px",
+                        "stack-md": "16px",
+                        "gutter": "16px",
+                        "base": "8px"
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 border-b border-white/5 backdrop-blur-md flex justify-center items-center px-safe-margin h-16">
+<h1 class="font-headline font-bold text-primary tracking-tighter uppercase text-[20px]">KINETIC</h1>
+</header>
+<main class="pt-24 pb-32 px-safe-margin max-w-lg mx-auto">
+<!-- Hero Metric Section -->
+<section class="mb-stack-lg">
+<div class="flex justify-between items-end mb-4">
+<div>
+<span class="text-[12px] font-semibold text-primary uppercase tracking-widest font-headline">Current Weight</span>
+<div class="flex items-baseline gap-2">
+<h2 class="text-4xl font-bold text-on-surface">74.5</h2>
+<span class="text-xl font-medium text-on-surface-variant">kg</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-[14px] font-bold text-primary uppercase flex items-center gap-1 font-headline">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+                    +0.5 kg
+                </span>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-headline">This week</span>
+</div>
+</div>
+<!-- Visualization Canvas -->
+<div class="glass-card rounded-xl p-stack-md h-48 relative overflow-hidden">
+<!-- Background Grid -->
+<div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: linear-gradient(#C5A880 1px, transparent 1px), linear-gradient(90deg, #C5A880 1px, transparent 1px); background-size: 40px 40px;"></div>
+<svg class="w-full h-full drop-shadow-[0_0_12px_rgba(197,168,128,0.3)]" viewbox="0 0 300 120">
+<!-- Sparkline Chart -->
+<path class="animate-chart" d="M0,100 L30,95 L60,98 L90,85 L120,88 L150,75 L180,78 L210,65 L240,68 L270,55 L300,58" fill="none" stroke="#C5A880" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<!-- Gradient Area -->
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#C5A880" stop-opacity="0.25"></stop>
+<stop offset="100%" stop-color="#C5A880" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,100 L30,95 L60,98 L90,85 L120,88 L150,75 L180,78 L210,65 L240,68 L270,55 L300,58 L300,120 L0,120 Z" fill="url(#chartGradient)"></path>
+</svg>
+<div class="absolute bottom-3 left-0 right-0 px-4 flex justify-between">
+<span class="text-[10px] text-on-surface-variant font-medium">MON</span>
+<span class="text-[10px] text-on-surface-variant font-medium">WED</span>
+<span class="text-[10px] text-on-surface-variant font-medium">FRI</span>
+<span class="text-[10px] text-on-surface-variant font-medium">SUN</span>
+</div>
+</div>
+</section>
+<!-- Action Button -->
+<div class="flex justify-center mb-stack-lg">
+<button class="pulse-action bg-primary text-on-primary font-bold py-4 px-10 rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all w-full">
+<span class="material-symbols-outlined">add</span>
+<span class="uppercase tracking-widest text-[14px] font-headline">Log Weight</span>
+</button>
+</div>
+<!-- Logs Feed Section -->
+<section>
+<div class="flex justify-between items-center mb-stack-md">
+<h3 class="text-xl font-bold text-on-surface">Weight History</h3>
+<span class="text-[12px] text-primary uppercase font-bold tracking-tighter cursor-pointer font-headline">View All</span>
+</div>
+<div class="space-y-3">
+<!-- Log Entry 1 -->
+<div class="glass-card p-4 rounded-xl flex items-center justify-between group hover:border-primary/40 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">scale</span>
+</div>
+<div>
+<p class="text-lg text-on-surface font-semibold">74.5 kg</p>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wide">Today, 08:30 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[12px] text-primary font-bold font-headline">+0.5</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Log Entry 2 -->
+<div class="glass-card p-4 rounded-xl flex items-center justify-between group hover:border-primary/40 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">scale</span>
+</div>
+<div>
+<p class="text-lg text-on-surface font-semibold">74.0 kg</p>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wide">Yesterday, 07:15 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[12px] text-primary font-bold font-headline">-0.2</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Log Entry 3 -->
+<div class="glass-card p-4 rounded-xl flex items-center justify-between group hover:border-primary/40 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">scale</span>
+</div>
+<div>
+<p class="text-lg text-on-surface font-semibold">74.2 kg</p>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wide">Oct 22, 08:45 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[12px] text-on-surface-variant font-bold font-headline">--</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Log Entry 4 -->
+<div class="glass-card p-4 rounded-xl flex items-center justify-between group hover:border-primary/40 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">scale</span>
+</div>
+<div>
+<p class="text-lg text-on-surface font-semibold">73.8 kg</p>
+<p class="text-[11px] text-on-surface-variant uppercase tracking-wide">Oct 20, 07:00 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[12px] text-primary font-bold font-headline">-0.6</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 h-[84px] bg-background border-t border-white/5 backdrop-blur-lg flex justify-around items-center px-4 pb-safe">
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[11px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="text-[11px] font-medium">Classes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-bold pt-1 border-t-2 border-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+<span class="text-[11px]">Weight</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="text-[11px] font-medium">AI Coach</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1" href="#">
+<span class="material-symbols-outlined">credit_card</span>
+<span class="text-[11px] font-medium">Billing</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[11px] font-medium">Profile</span>
+</a>
+</nav>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const logButton = document.querySelector('.pulse-action');
+        if (logButton) {
+            logButton.addEventListener('click', () => {
+                if (window.navigator.vibrate) {
+                    window.navigator.vibrate(10);
+                }
+            });
+        }
+
+        const entries = document.querySelectorAll('.glass-card');
+        const observer = new IntersectionObserver((obsEntries) => {
+            obsEntries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        entries.forEach(entry => {
+            entry.classList.add('opacity-0', 'transition-all', 'duration-500');
+            entry.style.transform = 'translateY(10px)';
+            observer.observe(entry);
+        });
+    });
+</script>
+</body></html>

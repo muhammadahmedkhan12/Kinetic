@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments & Node dependencies
+.venv/
+venv/
+ENV/
+env/
+node_modules/
+react-frontend/node_modules/
+react-frontend/dist/
+
+# SQLite Fallback DB & temporary dumps
+*.db
+admin_dashboard_original_reference.zip
+Kinetic_design.zip
+
+# System & IDE files
+.DS_Store
+.vscode/
+.obsidian/

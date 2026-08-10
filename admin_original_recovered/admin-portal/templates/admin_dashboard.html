@@ -1,0 +1,1066 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Dashboard — KINETIC Gym{% endblock %}
+
+{% block head %}
+<style>
+    /* Admin Dashboard Layout styling */
+    .admin-dashboard { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    
+    /* ── Dashboard Navigation Tabs ── */
+    .dash-tabs {
+        display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color);
+        margin-bottom: 2rem; overflow-x: auto; padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+    .dash-tabs::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+    .dash-tab-btn {
+        background: transparent; border: none; color: var(--text-muted);
+        font-size: 0.82rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.08em; padding: 0.75rem 1.25rem; cursor: pointer;
+        transition: all 0.25s ease; border-bottom: 2px solid transparent;
+        white-space: nowrap; display: flex; align-items: center; gap: 6px;
+    }
+    .dash-tab-btn:hover { color: var(--text-primary); }
+    .dash-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    
+    .dash-tab-content { display: none; }
+    .dash-tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Layouts */
+    .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .admin-stat-card {
+        background: var(--bg-secondary); border: 1px solid var(--border-color);
+        border-radius: 12px; padding: 1.5rem; text-align: center;
+        transition: border-color 0.3s ease;
+    }
+    .admin-stat-card:hover { border-color: var(--border-hover); }
+    .admin-stat-number { font-size: 2.2rem; font-weight: 800; color: var(--accent); display: block; margin-bottom: 4px; }
+    .admin-stat-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* Tables & Search */
+    .search-container { margin-bottom: 1.5rem; display: flex; gap: 1rem; }
+    .search-input {
+        flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color);
+        border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-primary);
+        font-size: 0.88rem; outline: none; transition: border-color 0.25s ease;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    
+    .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .admin-table th {
+        padding: 0.85rem 1rem; font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border-color);
+    }
+    .admin-table td { padding: 0.85rem 1rem; font-size: 0.88rem; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); }
+    .admin-table tbody tr { transition: background 0.2s ease; }
+    .admin-table tbody tr:hover { background: rgba(197, 168, 128, 0.04); }
+    .admin-table--interactive tbody tr { cursor: pointer; }
+
+    /* Badges & Status */
+    .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .status-badge--active { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .status-badge--pending { background: rgba(197, 168, 128, 0.15); color: var(--accent); }
+    .status-badge--inactive, .status-badge--expired { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+    /* Modals & Overlay Drawers */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(6px);
+        z-index: 1000; display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .modal-overlay--show { opacity: 1; pointer-events: all; }
+    
+    .modal-card {
+        background: var(--bg-secondary); border: 1px solid var(--border-color);
+        border-radius: 16px; width: 620px; max-width: 90%; max-height: 85vh;
+        overflow-y: auto; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+        transform: translateY(16px); transition: transform 0.3s ease;
+    }
+    .modal-overlay--show .modal-card { transform: translateY(0); }
+
+    /* Premium Dark Theme Scrollbar for Modal Card & Scrollable areas */
+    .modal-card::-webkit-scrollbar,
+    .modal-card *::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .modal-card::-webkit-scrollbar-track,
+    .modal-card *::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 4px;
+    }
+    .modal-card::-webkit-scrollbar-thumb,
+    .modal-card *::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+        border: 2px solid var(--bg-secondary);
+    }
+    .modal-card::-webkit-scrollbar-thumb:hover,
+    .modal-card *::-webkit-scrollbar-thumb:hover {
+        background: var(--accent);
+    }
+    
+    .modal-header { padding: 1.5rem; border-bottom: 1px solid rgba(197, 168, 128, 0.15); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.08em; }
+    .modal-close-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.5rem; transition: color 0.2s ease; }
+    .modal-close-btn:hover { color: var(--accent); }
+    
+    .modal-body { padding: 1.5rem; }
+    .modal-section-title { font-size: 0.82rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin: 1.5rem 0 0.75rem; border-bottom: 1px solid rgba(197, 168, 128, 0.1); padding-bottom: 4px; }
+    .modal-section-title:first-child { margin-top: 0; }
+
+    /* Form Elements */
+    .trainer-form {
+        display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 0.75rem; align-items: flex-end;
+        background: var(--bg-tertiary); border: 1px solid var(--border-color);
+        border-radius: 8px; padding: 1.25rem; margin-top: 1.5rem;
+    }
+    @media (max-width: 768px) {
+        .trainer-form { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard">
+    <div class="section-header animate-on-scroll">
+        <p class="section-subtitle">ADMINISTRATION</p>
+        <h2 class="section-title">Control Center</h2>
+    </div>
+
+    <!-- ── Sub-Navigation Tabs ── -->
+    <div class="dash-tabs animate-on-scroll">
+        <button class="dash-tab-btn active" id="tab-btn-overview" onclick="switchAdminTab('overview')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+            Overview
+        </button>
+        <button class="dash-tab-btn" id="tab-btn-directory" onclick="switchAdminTab('directory')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Members Directory
+        </button>
+        <button class="dash-tab-btn" id="tab-btn-trainers" onclick="switchAdminTab('trainers')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
+            Trainers
+        </button>
+        <button class="dash-tab-btn" id="tab-btn-classes" onclick="switchAdminTab('classes')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Classes Schedule
+        </button>
+        <button class="dash-tab-btn" id="tab-btn-revenue" onclick="switchAdminTab('revenue')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Revenue Analytics
+        </button>
+        <button class="dash-tab-btn" id="tab-btn-payments" onclick="switchAdminTab('payments')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            Payments Ledger
+        </button>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         TAB CONTENT: OVERVIEW
+         ────────────────────────────────────────── -->
+    <div class="dash-tab-content active" id="tab-overview">
+        <!-- Stat Cards -->
+        <div class="admin-grid animate-on-scroll">
+            <div class="admin-stat-card">
+                <span class="admin-stat-number">{{ members|length }}</span>
+                <span class="admin-stat-label">Total Members</span>
+            </div>
+            <div class="admin-stat-card">
+                <span class="admin-stat-number">{{ trainers|length }}</span>
+                <span class="admin-stat-label">Trainers</span>
+            </div>
+            <div class="admin-stat-card">
+                <span class="admin-stat-number" id="monthly-revenue-stat-card">$0.00</span>
+                <span class="admin-stat-label">Revenue (This Month)</span>
+            </div>
+            <div class="admin-stat-card">
+                <span class="admin-stat-number">{{ payments|length }}</span>
+                <span class="admin-stat-label">Payments Ledger</span>
+            </div>
+        </div>
+
+        <!-- Pending Payment Approvals -->
+        {% if pending_payments %}
+        <div class="card animate-on-scroll" style="padding: 2rem; margin-bottom: 2rem; border-color: rgba(197,168,128,0.35);">
+            <h3 class="card-title" style="margin-bottom: 0.5rem; color: var(--accent);">⏳ Pending Payment Approvals</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Bank transfer payments awaiting your verification.</p>
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Member</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Method</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in pending_payments %}
+                        {% set member = user_repo.findById(p.getUserId()) %}
+                        <tr>
+                            <td style="color: var(--accent);">#{{ p.getId() }}</td>
+                            <td style="font-weight: 600;">{{ member.getName() if member else 'Unknown' }}</td>
+                            <td>${{ p.getAmount() }}</td>
+                            <td>{{ p.getDate() }}</td>
+                            <td style="text-transform: capitalize;">{{ p.getMethod()|replace('_', ' ') }}</td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <form action="{{ url_for('approve_payment', payment_id=p.getId()) }}" method="POST" style="margin:0;">
+                                        <button type="submit" class="btn btn-primary btn--sm" style="padding: 4px 12px; font-size: 0.72rem; border-color: var(--success); color: var(--success);">Approve</button>
+                                    </form>
+                                    <form action="{{ url_for('reject_payment', payment_id=p.getId()) }}" method="POST" style="margin:0;">
+                                        <button type="submit" class="btn btn-secondary btn--sm" style="padding: 4px 12px; font-size: 0.72rem; border-color: var(--error); color: var(--error);">Reject</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not pending_members and not pending_payments %}
+            <div class="card text-center" style="padding: 3rem 2rem;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">✨</div>
+                <h3 class="card-title" style="margin-bottom: 0.5rem;">All caught up!</h3>
+                <p class="text-muted" style="font-size: 0.88rem; max-width: 400px; margin: 0 auto;">There are currently no pending member registrations or payment verifications awaiting approval.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         TAB CONTENT: MEMBERS DIRECTORY
+         ────────────────────────────────────────── -->
+    <div class="dash-tab-content" id="tab-directory">
+        <div class="card" style="padding: 2rem;">
+            <div class="search-container" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <input class="search-input" id="member-search" type="text" placeholder="Search members by name, email or ID..." oninput="filterMembers()" style="flex: 1;">
+                <select id="member-filter-status" onchange="filterMembers()" class="form-input" style="width: 240px; height: 42px; padding: 0 1rem; background: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary); border-radius: 8px;">
+                    <option value="all">All Members</option>
+                    <option value="active">Active Members Only</option>
+                    <option value="unpaid">Expired / Unpaid Only</option>
+                </select>
+            </div>
+            
+            {% if members %}
+            <div style="overflow-x: auto;">
+                <table class="admin-table admin-table--interactive" id="members-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Gender</th>
+                            <th>Phone</th>
+                            <th>Membership Plan</th>
+                            <th>Expiry Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for m in members %}
+                        {% set sub = membership_service.getMembership(m.getId()) %}
+                        <tr onclick="viewMemberDetails({{ m.getId() }})" data-plan="{{ sub.getMembershipType() if sub else 'none' }}" data-expiry="{{ sub.getEndDate() if sub else 'none' }}" data-status="{{ sub.getStatus() if sub else 'none' }}">
+                            <td class="member-id-cell" style="color: var(--accent);">#{{ m.getId() }}</td>
+                            <td class="member-name-cell" style="font-weight: 600;">{{ m.getName() }}</td>
+                            <td class="member-email-cell">{{ m.getEmail() }}</td>
+                            <td style="text-transform: capitalize;">{{ m.getGender() }}</td>
+                            <td>{{ m.getNumber() if m.getNumber() else 'N/A' }}</td>
+                            <td class="member-plan-cell">
+                                {% if sub %}
+                                    <span style="text-transform: capitalize; font-weight: 700;">{{ sub.getMembershipType() }}</span>
+                                {% else %}
+                                    <span style="color: var(--text-muted);">None</span>
+                                {% endif %}
+                            </td>
+                            <td class="member-expiry-cell">
+                                {% if sub %}
+                                    {% if sub.getStatus() == 'active' %}
+                                        <span style="color: var(--success); font-weight: 700;">{{ sub.getEndDate() }}</span>
+                                    {% else %}
+                                        <span style="color: var(--error); font-weight: 700;">{{ sub.getEndDate() }} ({{ sub.getStatus() }})</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: var(--text-muted);">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="text-muted">No members registered yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         TAB CONTENT: TRAINERS
+         ────────────────────────────────────────── -->
+    <div class="dash-tab-content" id="tab-trainers">
+        <div class="card" style="padding: 2rem;">
+            <h3 class="card-title" style="margin-bottom: 1.5rem;">Gym Trainers Registry</h3>
+            {% if trainers %}
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>Experience</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for t in trainers %}
+                        <tr>
+                            <td style="color: var(--accent);">#{{ t.getId() }}</td>
+                            <td style="font-weight: 600;">{{ t.getName() }}</td>
+                            <td>{{ t.getSpecialization() }}</td>
+                            <td>{{ t.getExperience() }} years</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="text-muted">No trainers registered yet.</p>
+            {% endif %}
+            
+            <form action="{{ url_for('add_trainer') }}" method="POST" class="trainer-form">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="t-name">Trainer Name</label>
+                    <input class="form-input" type="text" id="t-name" name="name" required placeholder="Alex Johnson">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="t-spec">Specialization</label>
+                    <input class="form-input" type="text" id="t-spec" name="specialization" required placeholder="Strength & Conditioning">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="t-exp">Exp (Yrs)</label>
+                    <input class="form-input" type="number" id="t-exp" name="experience" min="0" required placeholder="5">
+                </div>
+                <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 1.5rem; text-transform: uppercase; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em;">Add Trainer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         TAB CONTENT: CLASSES SCHEDULE
+         ────────────────────────────────────────── -->
+    <div class="dash-tab-content" id="tab-classes">
+        <div class="card" style="padding: 2rem; margin-bottom: 2rem; border-color: rgba(197, 168, 128, 0.15);">
+            <h3 class="card-title" style="margin-bottom: 0.5rem; color: var(--accent);">📅 Gym Classes Schedule</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Manage standard group fitness classes, schedule times, assign instructors, and set maximum capacity limits.</p>
+
+            {% if available_classes %}
+            <div style="overflow-x: auto; margin-bottom: 2rem;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Class ID</th>
+                            <th>Class Name</th>
+                            <th>Days</th>
+                            <th>Time Slot</th>
+                            <th>Instructor</th>
+                            <th>Capacity / Booked</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for c in available_classes %}
+                        {% set booked_count = 0 %}
+                        {% if user_bookings %}
+                            {% for u_id, c_ids in user_bookings.items() %}
+                                {% if c.id in c_ids %}
+                                    {% set booked_count = booked_count + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        <tr>
+                            <td style="color: var(--accent);">#{{ c.id }}</td>
+                            <td style="font-weight: 700;">{{ c.name }}</td>
+                            <td>{{ c.day }}</td>
+                            <td>{{ c.time }}</td>
+                            <td style="font-weight: 600; color: var(--text-secondary);">{{ c.trainer }}</td>
+                            <td>
+                                <span style="font-weight: 700;">{{ booked_count }}</span> / {{ c.capacity }}
+                                <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 4px;">({{ ((booked_count / c.capacity) * 100)|round|int }}%)</span>
+                            </td>
+                            <td style="text-align: right;">
+                                <form action="{{ url_for('delete_class', class_id=c.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel and remove this class? All bookings for this class will be purged.');" style="margin: 0; display: inline;">
+                                    <button type="submit" class="btn btn-secondary btn--sm" style="border-color: var(--error); color: var(--error); padding: 4px 8px; font-size: 0.72rem; height: 28px; background: transparent;">Cancel Class</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="text-muted" style="margin-bottom: 2rem;">No classes defined yet. Add a class below to populate the schedule.</p>
+            {% endif %}
+
+            <h4 class="card-title" style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-primary); border-top: 1px solid rgba(197, 168, 128, 0.15); padding-top: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Add New Fitness Class</h4>
+            <form action="{{ url_for('add_class') }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 0.75rem; align-items: flex-end;">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="c-name">Class Name</label>
+                    <input class="form-input" type="text" id="c-name" name="name" required placeholder="e.g. CrossFit WOD" style="height: 38px;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="c-day">Days</label>
+                    <input class="form-input" type="text" id="c-day" name="day" required placeholder="e.g. Mon / Wed / Fri" style="height: 38px;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="c-time">Time Slot</label>
+                    <input class="form-input" type="text" id="c-time" name="time" required placeholder="e.g. 06:00 AM - 07:00 AM" style="height: 38px;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="c-trainer">Instructor</label>
+                    <select class="form-input" id="c-trainer" name="trainer" required style="height: 38px; background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-color); border-radius: 6px; padding: 0 10px;">
+                        {% for t in trainers %}
+                            <option value="{{ t.getName() }}">{{ t.getName() }}</option>
+                        {% else %}
+                            <option value="Alex Johnson">Alex Johnson</option>
+                            <option value="Sarah Connor">Sarah Connor</option>
+                            <option value="Mike Tyson">Mike Tyson</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="c-cap">Capacity</label>
+                    <input class="form-input" type="number" id="c-cap" name="capacity" min="1" required placeholder="20" style="height: 38px;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 1.25rem; text-transform: uppercase; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; white-space: nowrap;">Add Class</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         TAB CONTENT: REVENUE ANALYTICS
+         ────────────────────────────────────────── -->
+    <div class="dash-tab-content" id="tab-revenue">
+        <div class="card animate-on-scroll" style="padding: 2rem; margin-bottom: 2rem; border-color: rgba(197,168,128,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1.5rem;">
+                <div>
+                    <h3 class="card-title" style="margin-bottom: 0.25rem; color: var(--accent);">💰 Revenue Analysis Dashboard</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Analyze gym income by date range, payment method, and membership package.</p>
+                </div>
+                
+                <!-- Dynamic Filters -->
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Start Date</span>
+                        <input type="date" id="revenue-filter-start-date" onchange="updateRevenueAnalytics()" class="form-input" style="padding: 6px 12px; font-size: 0.8rem; background: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary); border-radius: 6px; width: 145px; height: 34px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">End Date</span>
+                        <input type="date" id="revenue-filter-end-date" onchange="updateRevenueAnalytics()" class="form-input" style="padding: 6px 12px; font-size: 0.8rem; background: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary); border-radius: 6px; width: 145px; height: 34px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Payment Method</span>
+                        <select id="revenue-filter-method" onchange="updateRevenueAnalytics()" class="form-input" style="padding: 6px 12px; font-size: 0.8rem; background: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary); border-radius: 6px; width: 150px; height: 34px;">
+                            <option value="all">All Methods</option>
+                            <option value="cash">Cash</option>
+                            <option value="credit_card">Credit Card</option>
+                            <option value="debit_card">Debit Card</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Plan Tier Est.</span>
+                        <select id="revenue-filter-plan" onchange="updateRevenueAnalytics()" class="form-input" style="padding: 6px 12px; font-size: 0.8rem; background: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary); border-radius: 6px; width: 150px; height: 34px;">
+                            <option value="all">All Plan Tiers</option>
+                            <option value="29">Starter Plan ($29)</option>
+                            <option value="59">Pro Plan ($59)</option>
+                            <option value="99">Elite Plan ($99)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Summary Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; background: var(--bg-tertiary); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <div>
+                    <span style="font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Filtered Sales Total</span>
+                    <span id="revenue-filtered-total" style="font-size: 1.8rem; font-weight: 800; color: var(--accent);">$0.00</span>
+                </div>
+                <div>
+                    <span style="font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Completed Transactions</span>
+                    <span id="revenue-filtered-count" style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary);">0</span>
+                </div>
+                <div>
+                    <span style="font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Average Transaction</span>
+                    <span id="revenue-filtered-average" style="font-size: 1.8rem; font-weight: 800; color: var(--text-secondary);">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Detailed Transactions Breakdown for the Filtered Query -->
+            <h4 class="card-title" style="font-size: 0.9rem; margin-bottom: 1rem; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">Detailed Query Breakdown</h4>
+            <div style="overflow-x: auto; max-height: 400px;">
+                <table class="admin-table" id="revenue-breakdown-table">
+                    <thead>
+                        <tr>
+                            <th>Tx ID</th>
+                            <th>Member</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Method</th>
+                        </tr>
+                    </thead>
+                    <tbody id="revenue-breakdown-body">
+                        <!-- Dynamic items injected here via javascript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ──────────────────────────────────────────
+         TAB CONTENT: PAYMENTS LEDGER
+         ────────────────────────────────────────── -->
+    <div class="dash-tab-content" id="tab-payments">
+        <div class="card" style="padding: 2rem;">
+            <h3 class="card-title" style="margin-bottom: 1.5rem;">Historical Transactions Ledger</h3>
+            {% if payments %}
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Member</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in payments %}
+                        {% set member = user_repo.findById(p.getUserId()) %}
+                        <tr>
+                            <td style="color: var(--accent);">#{{ p.getId() }}</td>
+                            <td style="font-weight: 600;">{{ member.getName() if member else 'User #' ~ p.getUserId() }}</td>
+                            <td style="font-weight: 600; color: var(--text-primary);">${{ p.getAmount() }}</td>
+                            <td>{{ p.getDate() }}</td>
+                            <td style="text-transform: capitalize;">{{ p.getMethod()|replace('_', ' ') }}</td>
+                            <td>
+                                {% if p.getStatus() == 'completed' %}
+                                    <span style="color: var(--success); font-weight: 700; text-transform: uppercase; font-size: 0.72rem;">{{ p.getStatus() }}</span>
+                                {% elif p.getStatus() == 'pending' %}
+                                    <span style="color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.72rem;">{{ p.getStatus() }}</span>
+                                {% else %}
+                                    <span style="color: var(--error); font-weight: 700; text-transform: uppercase; font-size: 0.72rem;">{{ p.getStatus() }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="text-muted">No payments recorded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+
+
+    <!-- ══════════════════════════════════════════
+         MEMBER DETAILS OVERLAY MODAL
+         ══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="detail-overlay" onclick="closeMemberDetails()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span class="modal-title" id="m-detail-title">Member Profile Details</span>
+                <button class="modal-close-btn" onclick="closeMemberDetails()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Member Core Profile -->
+                <div style="display: flex; gap: 1.5rem; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--bg-tertiary); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; color: var(--accent);" id="m-detail-avatar"></div>
+                    <div>
+                        <h4 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin:0;" id="m-detail-name"></h4>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 2px 0 0;" id="m-detail-email"></p>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="modal-section-title">Personal Data</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div>
+                        <div style="font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Phone</div>
+                        <div style="font-size: 0.88rem; color: var(--text-secondary);" id="m-detail-phone"></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Age</div>
+                        <div style="font-size: 0.88rem; color: var(--text-secondary);" id="m-detail-age"></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Gender</div>
+                        <div style="font-size: 0.88rem; color: var(--text-secondary); text-transform: capitalize;" id="m-detail-gender"></div>
+                    </div>
+                </div>
+
+                <!-- Membership Sub-Section -->
+                <div class="modal-section-title">Membership Status</div>
+                <div id="m-detail-membership-box" style="padding: 1.25rem; border-radius: 8px; background: rgba(197, 168, 128, 0.05); border: 1px solid rgba(197,168,128,0.2);">
+                    <!-- Dynamic details go here -->
+                </div>
+
+                <!-- Payments History -->
+                <div class="modal-section-title">Payment Logs</div>
+                <div style="overflow-x: auto; max-height: 180px;">
+                    <table class="admin-table" style="font-size: 0.82rem;">
+                        <thead>
+                            <tr>
+                                <th>Tx ID</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="m-detail-payments-body">
+                            <!-- Dynamic logs go here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Account Administration -->
+                <div class="modal-section-title" style="color: var(--error); border-bottom-color: rgba(239, 68, 68, 0.15);">Account Administration</div>
+                <div style="background: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 8px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+                    <div>
+                        <h5 style="margin:0; font-size:0.85rem; font-weight:700; color:var(--text-primary);">Delete Member Account</h5>
+                        <p style="margin: 2px 0 0 0; font-size:0.75rem; color:var(--text-muted);">Permanently purge this member's profile data from the database.</p>
+                    </div>
+                    <form id="m-detail-delete-form" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this member\'s account? This action is irreversible.');" style="margin:0;">
+                        <button type="submit" class="btn btn-secondary" style="border-color: var(--error); color: var(--error); padding: 6px 12px; font-size: 0.72rem; height: 32px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: transparent;">Delete Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Dictionary of members for client-side name lookup in breakdown table
+    const MEMBERS_DICT = {
+        {% for m in members %}
+        {{ m.getId() }}: "{{ m.getName() }}",
+        {% endfor %}
+    };
+
+    // Injected payments ledger array for interactive filtering
+    const ALL_PAYMENTS = [
+        {% for p in payments %}
+        {
+            id: {{ p.getId() }},
+            user_id: {{ p.getUserId() }},
+            amount: {{ p.getAmount() }},
+            date: "{{ p.getDate() }}",
+            method: "{{ p.getMethod() }}",
+            status: "{{ p.getStatus() }}"
+        },
+        {% endfor %}
+    ];
+
+    // Function to calculate and update filtered revenue metrics
+    function updateRevenueAnalytics() {
+        const startDateVal = document.getElementById('revenue-filter-start-date').value;
+        const endDateVal = document.getElementById('revenue-filter-end-date').value;
+        const selectedMethod = document.getElementById('revenue-filter-method').value;
+        const selectedPlan = document.getElementById('revenue-filter-plan').value;
+
+        // Parse date values (with boundary offsets)
+        const startDate = startDateVal ? new Date(startDateVal + "T00:00:00") : null;
+        const endDate = endDateVal ? new Date(endDateVal + "T23:59:59") : null;
+
+        let filteredSum = 0;
+        let count = 0;
+        const matchingPayments = [];
+
+        ALL_PAYMENTS.forEach(p => {
+            // Only count completed payments
+            if (p.status !== 'completed') return;
+
+            // Parse payment date
+            const pDate = new Date(p.date + "T12:00:00");
+            
+            // Filter by Date Range
+            if (startDate && pDate < startDate) return;
+            if (endDate && pDate > endDate) return;
+
+            // Filter by Payment Method
+            if (selectedMethod !== 'all' && p.method !== selectedMethod) return;
+
+            // Filter by Estimated Plan Tier (match exact amount)
+            if (selectedPlan !== 'all' && Math.round(p.amount) !== parseInt(selectedPlan)) return;
+
+            filteredSum += p.amount;
+            count++;
+            matchingPayments.push(p);
+        });
+
+        const average = count > 0 ? (filteredSum / count) : 0;
+
+        // Format currencies
+        const formattedTotal = '$' + filteredSum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const formattedAverage = '$' + average.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        // Update elements in DOM
+        document.getElementById('revenue-filtered-total').textContent = formattedTotal;
+        document.getElementById('revenue-filtered-count').textContent = count;
+        document.getElementById('revenue-filtered-average').textContent = formattedAverage;
+
+        // Rebuild breakdown table body dynamically
+        const body = document.getElementById('revenue-breakdown-body');
+        if (body) {
+            body.innerHTML = '';
+            if (matchingPayments.length > 0) {
+                matchingPayments.forEach(p => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td style="color: var(--accent);">#${p.id}</td>
+                        <td style="font-weight: 600;">${MEMBERS_DICT[p.user_id] || 'Member #' + p.user_id}</td>
+                        <td style="font-weight: 600; color: var(--text-primary);">$${p.amount.toFixed(2)}</td>
+                        <td>${p.date}</td>
+                        <td style="text-transform: capitalize;">${p.method.replace('_', ' ')}</td>
+                    `;
+                    body.appendChild(row);
+                });
+            } else {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted" style="padding: 2rem;">
+                            No matching transactions found for this query.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    }
+
+    // Function to calculate default current month revenue for stat card
+    function initMonthlyRevenueStat() {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        let total = 0;
+
+        ALL_PAYMENTS.forEach(p => {
+            if (p.status === 'completed') {
+                const pDate = new Date(p.date + "T12:00:00");
+                if (pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear) {
+                    total += p.amount;
+                }
+            }
+        });
+
+        const formatted = '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const statCard = document.getElementById('monthly-revenue-stat-card');
+        if (statCard) {
+            statCard.textContent = formatted;
+        }
+    }
+
+    // ── Toast Notifications ──
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `form-alert form-alert-${type}`;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '24px';
+        toast.style.right = '24px';
+        toast.style.zIndex = '9999';
+        toast.style.margin = '0';
+        toast.style.maxWidth = '360px';
+        toast.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.4)';
+        toast.style.borderRadius = '8px';
+        toast.style.border = '1px solid var(--accent)';
+        toast.style.backdropFilter = 'blur(10px)';
+        toast.style.animation = 'slideUp 0.3s ease forwards';
+        toast.textContent = message;
+
+        // Inline slideUp style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            toast.style.transition = 'all 0.35s ease';
+            setTimeout(() => {
+                toast.remove();
+                style.remove();
+            }, 350);
+        }, 4000);
+    }
+
+    // ── Send Payment Reminder AJAX ──
+    async function sendPaymentReminder(userId, button) {
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = `
+            <svg class="spinner" width="12" height="12" viewBox="0 0 50 50" style="animation: rotate 1s linear infinite; margin-right:4px; vertical-align: middle;">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" stroke="currentColor" style="stroke-linecap: round; stroke-dasharray: 1, 150; stroke-dashoffset: 0;"></circle>
+            </svg>
+            Sending...
+        `;
+
+        // Spinner styling
+        const spinStyle = document.createElement('style');
+        spinStyle.textContent = `
+            @keyframes rotate { 100% { transform: rotate(360deg); } }
+        `;
+        document.head.appendChild(spinStyle);
+
+        try {
+            const response = await fetch(`/admin/send-payment-reminder/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            spinStyle.remove();
+
+            if (data.success) {
+                showToast(data.message, 'success');
+                button.innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Sent
+                `;
+                button.style.borderColor = 'var(--success)';
+                button.style.color = 'var(--success)';
+            } else {
+                showToast(data.error || 'Failed to send reminder email.', 'error');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        } catch (err) {
+            spinStyle.remove();
+            showToast('Connection error. Could not contact email server.', 'error');
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    }
+
+    // ── Tab Switching Logic ──
+    function switchAdminTab(tabName) {
+        document.querySelectorAll('.dash-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.dash-tab-content').forEach(pnl => pnl.classList.remove('active'));
+        
+        const activeBtn = document.getElementById('tab-btn-' + tabName);
+        const activePnl = document.getElementById('tab-' + tabName);
+        if (activeBtn && activePnl) {
+            activeBtn.classList.add('active');
+            activePnl.classList.add('active');
+        }
+        
+        sessionStorage.setItem('current_admin_tab', tabName);
+    }
+    
+    // Auto-restore tab and initialize analytics on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set default start/end dates to current month range
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        const formatDate = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const date = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${date}`;
+        };
+
+        const startDateInput = document.getElementById('revenue-filter-start-date');
+        const endDateInput = document.getElementById('revenue-filter-end-date');
+
+        if (startDateInput) startDateInput.value = formatDate(firstDay);
+        if (endDateInput) endDateInput.value = formatDate(lastDay < now ? lastDay : now);
+
+        // Initialize Revenue stats
+        initMonthlyRevenueStat();
+        updateRevenueAnalytics();
+
+        let savedTab = sessionStorage.getItem('current_admin_tab');
+
+        // Check if there is an explicit query parameter tab requested (e.g. ?tab=classes)
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryTab = urlParams.get('tab');
+        if (queryTab) {
+            savedTab = queryTab;
+        }
+
+        if (savedTab && ['overview', 'directory', 'trainers', 'classes', 'revenue', 'payments'].includes(savedTab)) {
+            switchAdminTab(savedTab);
+        } else {
+            switchAdminTab('overview');
+        }
+    });
+
+    // ── Members Search Filter ──
+    function filterMembers() {
+        const query = document.getElementById('member-search').value.toLowerCase().trim();
+        const selectedStatus = document.getElementById('member-filter-status').value;
+        const rows = document.querySelectorAll('#members-table tbody tr');
+
+        rows.forEach(row => {
+            const name = row.querySelector('.member-name-cell').textContent.toLowerCase();
+            const email = row.querySelector('.member-email-cell').textContent.toLowerCase();
+            const id = row.querySelector('.member-id-cell').textContent.toLowerCase();
+            
+            const subStatus = row.getAttribute('data-status');
+
+            // Text search match
+            const textMatch = name.includes(query) || email.includes(query) || id.includes(query);
+
+            // Subscription status filter match
+            let statusMatch = false;
+            if (selectedStatus === 'all') {
+                statusMatch = true;
+            } else if (selectedStatus === 'active') {
+                statusMatch = (subStatus === 'active');
+            } else if (selectedStatus === 'unpaid') {
+                statusMatch = (subStatus !== 'active');
+            }
+
+            if (textMatch && statusMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // ── View Member Details Modal Fetch ──
+    async function viewMemberDetails(userId) {
+        const overlay = document.getElementById('detail-overlay');
+        overlay.classList.add('modal-overlay--show');
+        
+        document.getElementById('m-detail-avatar').textContent = '...';
+        document.getElementById('m-detail-name').textContent = 'Loading...';
+        document.getElementById('m-detail-email').textContent = 'Fetching data...';
+        document.getElementById('m-detail-phone').textContent = '...';
+        document.getElementById('m-detail-age').textContent = '...';
+        document.getElementById('m-detail-gender').textContent = '...';
+        document.getElementById('m-detail-membership-box').innerHTML = '<p class="text-muted" style="font-size:0.82rem;margin:0;">Querying membership history...</p>';
+        document.getElementById('m-detail-payments-body').innerHTML = '<tr><td colspan="5" class="text-center text-muted">Retrieving transactions...</td></tr>';
+
+        try {
+            const response = await fetch('/admin/member-details/' + userId);
+            const data = await response.json();
+            
+            if (data.error) {
+                document.getElementById('m-detail-name').textContent = 'Error';
+                document.getElementById('m-detail-email').textContent = data.error;
+                return;
+            }
+
+            document.getElementById('m-detail-avatar').textContent = data.name[0];
+            document.getElementById('m-detail-name').textContent = data.name;
+            document.getElementById('m-detail-email').textContent = data.email;
+            document.getElementById('m-detail-phone').textContent = data.phone ? data.phone : 'Not Provided';
+            document.getElementById('m-detail-age').textContent = data.age;
+            document.getElementById('m-detail-gender').textContent = data.gender;
+
+            // Set dynamic delete form action target
+            document.getElementById('m-detail-delete-form').action = `/admin/delete-member/${userId}`;
+
+            const memBox = document.getElementById('m-detail-membership-box');
+            if (data.membership) {
+                const statusClass = 'status-badge--' + data.membership.status.toLowerCase();
+                let reminderBtn = '';
+                if (data.membership.status !== 'active') {
+                    reminderBtn = `
+                        <div style="margin-top: 1rem; border-top: 1px dashed rgba(197, 168, 128, 0.2); padding-top: 1rem;">
+                            <button onclick="sendPaymentReminder(${data.id}, this)" class="btn btn-primary btn--sm" style="padding: 6px 12px; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px; width: 100%; justify-content: center;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                Send Payment Reminder Email
+                            </button>
+                        </div>
+                    `;
+                }
+                memBox.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                        <span style="font-size: 1.1rem; font-weight: 800; color: var(--accent); text-transform: uppercase;">${data.membership.type}</span>
+                        <span class="status-badge ${statusClass}">${data.membership.status}</span>
+                    </div>
+                    <div style="display:flex; gap: 1.5rem; font-size: 0.8rem; color: var(--text-muted);">
+                        <div><strong>Start:</strong> ${data.membership.start_date}</div>
+                        <div><strong>Expires:</strong> ${data.membership.end_date}</div>
+                    </div>
+                    ${reminderBtn}
+                `;
+            } else {
+                memBox.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                        <span style="font-size: 1.1rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">No Active Plan</span>
+                        <span class="status-badge status-badge--expired">Unpaid</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size:0.82rem; margin:0 0 1rem 0;">No active subscription plan found.</p>
+                    <button onclick="sendPaymentReminder(${data.id}, this)" class="btn btn-primary btn--sm" style="padding: 6px 12px; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px; width: 100%; justify-content: center;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        Send Payment Reminder Email
+                    </button>
+                `;
+            }
+
+            const payBody = document.getElementById('m-detail-payments-body');
+            payBody.innerHTML = '';
+            if (data.payments && data.payments.length > 0) {
+                data.payments.forEach(p => {
+                    const row = document.createElement('tr');
+                    let statusColor = 'var(--text-muted)';
+                    if (p.status === 'completed') statusColor = 'var(--success)';
+                    else if (p.status === 'pending') statusColor = 'var(--accent)';
+                    else if (p.status === 'failed' || p.status === 'rejected') statusColor = 'var(--error)';
+
+                    row.innerHTML = `
+                        <td style="color: var(--accent);">#${p.id}</td>
+                        <td style="font-weight:600;">$${p.amount}</td>
+                        <td>${p.date}</td>
+                        <td style="text-transform: capitalize;">${p.method.replace('_', ' ')}</td>
+                        <td style="color: ${statusColor}; font-weight:700; text-transform:uppercase; font-size:0.75rem;">${p.status}</td>
+                    `;
+                    payBody.appendChild(row);
+                });
+            } else {
+                payBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:1rem 0;">No payments logged for this member.</td></tr>';
+            }
+
+        } catch (err) {
+            document.getElementById('m-detail-name').textContent = 'Error';
+            document.getElementById('m-detail-email').textContent = 'Failed to load details.';
+        }
+    }
+
+    function closeMemberDetails() {
+        document.getElementById('detail-overlay').classList.remove('modal-overlay--show');
+    }
+</script>
+{% endblock %}

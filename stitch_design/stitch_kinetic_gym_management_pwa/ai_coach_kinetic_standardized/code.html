@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>PULSE AI Coach | KINETIC</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#46464a",
+                        "on-tertiary": "#303034",
+                        "on-tertiary-fixed": "#1b1b1f",
+                        "on-error-container": "#ffdad6",
+                        "inverse-on-surface": "#2e3132",
+                        "error": "#ffb4ab",
+                        "secondary-container": "#584323",
+                        "primary-fixed-dim": "#c8c6c7",
+                        "on-primary-fixed": "#1c1b1c",
+                        "on-secondary-fixed": "#281800",
+                        "on-primary-fixed-variant": "#474647",
+                        "tertiary": "#c8c5cb",
+                        "outline": "#919094",
+                        "on-secondary-fixed-variant": "#584323",
+                        "surface-container-highest": "#323537",
+                        "on-surface": "#e1e2e4",
+                        "on-tertiary-container": "#7b797e",
+                        "surface-tint": "#c8c6c7",
+                        "surface-container-high": "#282a2c",
+                        "inverse-primary": "#5f5e5f",
+                        "on-error": "#690005",
+                        "primary": "#c8c6c7",
+                        "surface-bright": "#37393b",
+                        "tertiary-fixed": "#e4e1e7",
+                        "surface-container-low": "#191c1e",
+                        "tertiary-fixed-dim": "#c8c5cb",
+                        "on-background": "#e1e2e4",
+                        "background": "#0B0B0C",
+                        "primary-fixed": "#e5e2e3",
+                        "on-primary": "#313031",
+                        "inverse-surface": "#e1e2e4",
+                        "surface-dim": "#111415",
+                        "on-secondary": "#402d0f",
+                        "primary-container": "#0b0b0c",
+                        "surface": "#111415",
+                        "on-surface-variant": "#c7c6ca",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#0b0b0f",
+                        "surface-container-lowest": "#0c0f10",
+                        "surface-variant": "#323537",
+                        "surface-container": "#1d2022",
+                        "secondary-fixed": "#fedeb2",
+                        "on-secondary-container": "#ceb188",
+                        "secondary-fixed-dim": "#e0c298",
+                        "secondary": "#e0c298",
+                        "on-tertiary-fixed-variant": "#47464b",
+                        "kinetic-gold": "#C5A880"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "xl": "40px",
+                        "container-margin": "20px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Outfit"],
+                        "display-lg": ["Outfit"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B0B0C;
+            color: #e1e2e4;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(25, 28, 30, 0.8);
+            border: 1px solid rgba(197, 168, 128, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .pulse-glow {
+            box-shadow: 0 0 15px rgba(197, 168, 128, 0.3);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<!-- Header: Centered Logo -->
+<header class="fixed top-0 w-full z-50 flex justify-center items-center px-container-margin h-16 bg-surface-container-lowest/80 border-b border-outline-variant/30 backdrop-blur-md">
+<h1 class="font-headline-lg text-kinetic-gold tracking-tighter uppercase text-[24px]">KINETIC</h1>
+</header>
+<!-- Content Canvas -->
+<main class="flex-grow pt-20 pb-[180px] px-container-margin flex flex-col gap-lg relative overflow-y-auto">
+<!-- Suggestions Chips -->
+<section class="w-full overflow-x-auto no-scrollbar py-2 -mx-container-margin px-container-margin">
+<div class="flex gap-3 whitespace-nowrap">
+<button class="px-5 py-2.5 rounded-lg glass-card text-on-surface text-[12px] font-semibold border-kinetic-gold/20 hover:bg-surface-bright transition-colors">
+                    Book Yoga today
+                </button>
+<button class="px-5 py-2.5 rounded-lg glass-card text-on-surface text-[12px] font-semibold border-kinetic-gold/20 hover:bg-surface-bright transition-colors">
+                    Show attendance history
+                </button>
+<button class="px-5 py-2.5 rounded-lg glass-card text-on-surface text-[12px] font-semibold border-kinetic-gold/20 hover:bg-surface-bright transition-colors">
+                    Current plan?
+                </button>
+<button class="px-5 py-2.5 rounded-lg glass-card text-on-surface text-[12px] font-semibold border-kinetic-gold/20 hover:bg-surface-bright transition-colors">
+                    Nutrition summary
+                </button>
+</div>
+</section>
+<!-- Chat Stream -->
+<div class="flex flex-col gap-md flex-grow">
+<!-- AI Message -->
+<div class="flex flex-col gap-2 max-w-[85%] self-start">
+<div class="glass-card p-4 rounded-xl rounded-tl-none">
+<p class="font-body-md text-on-surface">Hello Julian. I see you reached your HRV peak today. Shall we focus on a high-intensity session or a restorative mobility flow this afternoon?</p>
+</div>
+<span class="text-[10px] font-semibold text-on-surface-variant ml-1 uppercase font-body-sm">PULSE AI • 09:12 AM</span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col gap-2 max-w-[85%] self-end">
+<div class="bg-surface-container-highest border border-kinetic-gold/30 p-4 rounded-xl rounded-tr-none">
+<p class="font-body-md text-on-surface">Let's do high-intensity. I have a gap at 4 PM. Can you check my usual studio availability?</p>
+</div>
+<span class="text-[10px] font-semibold text-on-surface-variant self-end mr-1 uppercase font-body-sm">YOU • 09:14 AM</span>
+</div>
+<!-- AI Message with Dynamic Visualization -->
+<div class="flex flex-col gap-2 max-w-[90%] self-start">
+<div class="glass-card p-4 rounded-xl rounded-tl-none border-kinetic-gold/40">
+<p class="font-body-md text-on-surface mb-3">Checking availability... At 4 PM, there is an open slot for the 'Elite Power Circuits' at the Mayfair Studio. I've projected your metabolic burn based on your morning recovery:</p>
+<div class="bg-surface-container-lowest rounded-lg p-3 border border-outline-variant/40 mb-3 overflow-hidden relative min-h-[120px]">
+<div class="relative z-10 flex justify-between items-end h-full">
+<div>
+<h4 class="text-[11px] font-bold text-kinetic-gold uppercase">PROJECTED BURN</h4>
+<p class="font-headline-md text-on-surface">640 <span class="text-[14px] font-normal text-on-surface-variant">kcal</span></p>
+</div>
+<div class="text-right">
+<h4 class="text-[11px] font-bold text-kinetic-gold uppercase">INTENSITY</h4>
+<p class="font-headline-md text-on-surface">8.4/10</p>
+</div>
+</div>
+</div>
+<p class="font-body-md text-on-surface">Would you like me to reserve your spot and sync it to your calendar?</p>
+</div>
+<span class="text-[10px] font-semibold text-on-surface-variant ml-1 uppercase font-body-sm">PULSE AI • 09:15 AM</span>
+</div>
+<!-- User Message -->
+<div class="flex flex-col gap-2 max-w-[85%] self-end">
+<div class="bg-surface-container-highest border border-kinetic-gold/30 p-4 rounded-xl rounded-tr-none">
+<p class="font-body-md text-on-surface">Yes, please. Also, remind me to drink at least 3L of water before then.</p>
+</div>
+<span class="text-[10px] font-semibold text-on-surface-variant self-end mr-1 uppercase font-body-sm">YOU • 09:16 AM</span>
+</div>
+</div>
+</main>
+<!-- Fixed Chat Input Dock -->
+<div class="fixed bottom-[84px] w-full px-container-margin py-4 bg-background/80 backdrop-blur-md border-t border-outline-variant/30 z-40">
+<div class="flex items-center gap-3 bg-surface-container-low border border-outline-variant/30 rounded-full p-1.5 pl-5">
+<input class="flex-grow bg-transparent border-none focus:ring-0 text-on-surface font-body-md placeholder-on-surface-variant/50" placeholder="Ask PULSE AI..." type="text"/>
+<button class="w-10 h-10 flex items-center justify-center text-kinetic-gold hover:opacity-70 transition-colors">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button class="w-10 h-10 bg-kinetic-gold text-background rounded-full flex items-center justify-center pulse-glow active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<!-- Bottom Navigation Bar: Standard 6-Tab Navigation -->
+<nav class="fixed bottom-0 w-full z-50 h-[84px] bg-surface-container-lowest flex justify-around items-center px-xs pb-safe border-t border-outline-variant/30 backdrop-blur-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:text-kinetic-gold active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-semibold mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:text-kinetic-gold active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">fitness_center</span>
+<span class="text-[10px] font-semibold mt-1">Classes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:text-kinetic-gold active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-[10px] font-semibold mt-1">Weight</span>
+</a>
+<a class="flex flex-col items-center justify-center text-kinetic-gold border-t-2 border-kinetic-gold pt-1 hover:opacity-80 active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="text-[10px] font-semibold mt-1">AI Coach</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:text-kinetic-gold active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-semibold mt-1">Billing</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant pt-1 hover:text-kinetic-gold active:scale-98 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-semibold mt-1">Profile</span>
+</a>
+</nav>
+<script>
+        window.onload = () => {
+            const main = document.querySelector('main');
+            main.scrollTop = main.scrollHeight;
+        };
+
+        const input = document.querySelector('input');
+        const sendBtn = document.querySelector('button.bg-kinetic-gold');
+
+        sendBtn.addEventListener('click', () => {
+            if (input.value.trim()) {
+                input.value = '';
+            }
+        });
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && input.value.trim()) {
+                input.value = '';
+            }
+        });
+    </script>
+</body></html>
