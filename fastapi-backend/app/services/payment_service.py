@@ -1,5 +1,6 @@
 import os
 import uuid
+from typing import Optional
 from datetime import date
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
