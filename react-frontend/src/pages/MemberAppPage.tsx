@@ -71,20 +71,28 @@ export const MemberAppPage: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingAuth(true);
+    let res: any;
     try {
       const formData = new URLSearchParams();
       formData.append('username', identifier.trim().toLowerCase());
       formData.append('password', password);
 
-      const res = await apiClient.post('/auth/token', formData, {
+      res = await apiClient.post('/auth/token', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
+    } catch (err: any) {
+      flashToast(err.response?.data?.detail || 'Invalid login credentials.', 'error');
+      setIsSubmittingAuth(false);
+      return;
+    }
 
+    try {
       login(res.data.access_token, res.data);
       flashToast('Welcome back to KINETIC Gym!');
       refreshProfile();
     } catch (err: any) {
-      flashToast(err.response?.data?.detail || 'Invalid login credentials.', 'error');
+      console.error('Error setting member session:', err);
+      flashToast('Error starting member session.', 'error');
     } finally {
       setIsSubmittingAuth(false);
     }

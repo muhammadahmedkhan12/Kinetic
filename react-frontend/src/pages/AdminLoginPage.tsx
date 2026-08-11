@@ -16,15 +16,22 @@ export const AdminLoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    let res: any;
     try {
       const formData = new URLSearchParams();
       formData.append('username', username.trim().toLowerCase());
       formData.append('password', password);
 
-      const res = await apiClient.post('/auth/token', formData, {
+      res = await apiClient.post('/auth/token', formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
+    } catch (err: any) {
+      flashToast(err.response?.data?.detail || 'Invalid admin credentials.', 'error');
+      setIsSubmitting(false);
+      return;
+    }
 
+    try {
       if (res.data.role !== 'admin') {
         flashToast('Access denied. Account does not have staff admin privileges.', 'error');
         setIsSubmitting(false);
@@ -35,7 +42,8 @@ export const AdminLoginPage: React.FC = () => {
       flashToast('Welcome to KINETIC Admin Staff Portal!');
       navigate('/admin/dashboard');
     } catch (err: any) {
-      flashToast(err.response?.data?.detail || 'Invalid admin credentials.', 'error');
+      console.error('Error during admin session setup:', err);
+      flashToast('Error setting up session: ' + (err.message || 'Unknown error'), 'error');
     } finally {
       setIsSubmitting(false);
     }
