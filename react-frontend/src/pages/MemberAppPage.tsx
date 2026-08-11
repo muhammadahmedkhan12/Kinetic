@@ -73,7 +73,7 @@ export const MemberAppPage: React.FC = () => {
     setIsSubmittingAuth(true);
     try {
       const formData = new URLSearchParams();
-      formData.append('username', identifier);
+      formData.append('username', identifier.trim().toLowerCase());
       formData.append('password', password);
 
       const res = await apiClient.post('/auth/token', formData, {

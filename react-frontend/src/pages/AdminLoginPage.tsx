@@ -18,7 +18,7 @@ export const AdminLoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const formData = new URLSearchParams();
-      formData.append('username', username);
+      formData.append('username', username.trim().toLowerCase());
       formData.append('password', password);
 
       const res = await apiClient.post('/auth/token', formData, {
