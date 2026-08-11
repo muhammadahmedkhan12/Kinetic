@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Production Axios HTTP client for Railway backend integration
 export const apiClient = axios.create({
   baseURL: ((import.meta as any).env?.VITE_API_BASE_URL) || '/api/v1',
   headers: {
