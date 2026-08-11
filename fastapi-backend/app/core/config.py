@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     
     # CORS Policy (Restricted Frontend Domains)
     CORS_ORIGINS: List[str] = [
+        "https://kinetic-seven-rho.vercel.app",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
