@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     SQLITE_DB_PATH: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "gym_fallback.db")
     AZURE_SQL_CONN_STR: str = os.getenv(
         "AZURE_SQL_CONN_STR",
-        "DRIVER={ODBC Driver 17 for SQL Server};SERVER=cinemadatabase.database.windows.net;DATABASE=Gym;UID=cinema;PWD=movie12@;Connect Timeout=60;"
+        "DRIVER={ODBC Driver 17 for SQL Server};SERVER=cinemadatabase.database.windows.net;DATABASE=Gym;UID=cinema;PWD=movie12@"
     )
     
     # CORS Policy (Restricted Frontend Domains)
