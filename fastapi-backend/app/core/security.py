@@ -1,41 +1,47 @@
 from datetime import datetime, timedelta
 from typing import Optional, Any
 import jwt
-from passlib.context import CryptContext
+import bcrypt
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.core.config import settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     if not hashed_password or not plain_password:
         return False
-    # Truncate plain_password if needed for bcrypt length limit
-    plain = plain_password[:72]
     
-    # Legacy Werkzeug PBKDF2 check
-    if hashed_password.startswith("pbkdf2:"):
+    # 1. Legacy Plaintext comparison (for dev/test or legacy PINs)
+    if plain_password == hashed_password:
+        return True
+
+    # 2. Werkzeug hashes (scrypt:, pbkdf2:)
+    if hashed_password.startswith("scrypt:") or hashed_password.startswith("pbkdf2:"):
         try:
             return check_password_hash(hashed_password, plain_password)
         except Exception:
-            return False
-    # Legacy Plaintext fallback
-    if len(hashed_password) < 60 and not hashed_password.startswith("$"):
-        return plain_password == hashed_password
-    # Standard Bcrypt verify
+            pass
+
+    # 3. Bcrypt hashes ($2b$, $2a$, $2y$)
+    if hashed_password.startswith("$2"):
+        try:
+            plain_bytes = plain_password[:72].encode("utf-8")
+            hashed_bytes = hashed_password.encode("utf-8")
+            return bcrypt.checkpw(plain_bytes, hashed_bytes)
+        except Exception:
+            pass
+
+    # 4. Fallback attempt with werkzeug
     try:
-        return pwd_context.verify(plain, hashed_password)
+        return check_password_hash(hashed_password, plain_password)
     except Exception:
-        try:
-            return check_password_hash(hashed_password, plain_password)
-        except Exception:
-            return False
+        return False
 
 def get_password_hash(password: str) -> str:
-    # Truncate string to 72 bytes maximum for bcrypt compatibility
-    safe_pw = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+    # Use native bcrypt with UTF-8 truncation for 72-byte limit
     try:
-        return pwd_context.hash(safe_pw)
+        plain_bytes = password[:72].encode("utf-8")
+        salt = bcrypt.gensalt(rounds=12)
+        hashed = bcrypt.hashpw(plain_bytes, salt)
+        return hashed.decode("utf-8")
     except Exception:
         return generate_password_hash(password)
 
@@ -59,3 +65,4 @@ def decode_token(token: str) -> Optional[dict]:
         return payload
     except jwt.PyJWTError:
         return None
+

@@ -9,6 +9,7 @@ interface MemberDetailModalProps {
   isLoading?: boolean;
   onSendReminder: (id: number) => void;
   onDeleteMember: (id: number) => Promise<void> | void;
+  onResetPassword?: (id: number) => Promise<string | void>;
 }
 
 export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
@@ -18,9 +19,12 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
   isLoading = false,
   onSendReminder,
   onDeleteMember,
+  onResetPassword,
 }) => {
   const { flashToast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [currentPin, setCurrentPin] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -89,29 +93,32 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
 
   if (!memberDetails) return null;
 
-  const getCleanPassword = (rawPassword?: string, userId?: number) => {
-    if (!rawPassword) return '123456';
-    if (
-      rawPassword.startsWith('scrypt:') ||
-      rawPassword.startsWith('$2b$') ||
-      rawPassword.startsWith('$2a$') ||
-      rawPassword.length > 20
-    ) {
-      const id = userId || 10;
-      return String(100000 + ((id * 7919) % 900000));
-    }
-    return rawPassword;
-  };
-
-  const displayPassword = getCleanPassword(memberDetails.password, memberDetails.id);
+  const displayPassword = currentPin || memberDetails.password || '••••••';
 
   const copyCredentials = () => {
-    const text = `KINETIC Gym Credentials:\nEmail: ${memberDetails.email}\nPassword: ${displayPassword}`;
+    const text = `KINETIC Gym Credentials:\nEmail: ${memberDetails.email}\nPassword/PIN: ${displayPassword}`;
     navigator.clipboard.writeText(text).then(() => {
       flashToast('Credentials copied to clipboard!');
     }).catch(() => {
       prompt('Copy member credentials:', text);
     });
+  };
+
+  const handleResetPin = async () => {
+    if (!onResetPassword) return;
+    setIsResetting(true);
+    try {
+      const newPin = await onResetPassword(memberDetails.id);
+      if (newPin && typeof newPin === 'string') {
+        setCurrentPin(newPin);
+        navigator.clipboard.writeText(newPin).catch(() => {});
+        flashToast(`New PIN generated: ${newPin} (Copied to clipboard!)`);
+      }
+    } catch (err: any) {
+      flashToast('Failed to reset member PIN.', 'error');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -164,21 +171,34 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
             <span className="material-symbols-outlined text-[#C5A880] text-sm">key</span>
             <span>Account Credentials</span>
           </div>
-          <div className="p-4 rounded-xl bg-[#C5A880]/5 border border-[#C5A880]/20 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#C5A880]/5 border border-[#C5A880]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <div className="text-[10px] font-bold text-[#52525B] uppercase tracking-wider font-headline">Login Email / Username</div>
               <div className="text-sm font-bold text-[#F4F4F5] mb-2 font-headline">{memberDetails.email}</div>
-              <div className="text-[10px] font-bold text-[#52525B] uppercase tracking-wider font-headline">PIN Password</div>
-              <div className="text-sm font-mono font-bold text-[#C5A880]">{displayPassword}</div>
+              <div className="text-[10px] font-bold text-[#52525B] uppercase tracking-wider font-headline">PIN / Password</div>
+              <div className="text-base font-mono font-bold text-[#C5A880]">{displayPassword}</div>
             </div>
-            <button
-              type="button"
-              onClick={copyCredentials}
-              className="px-3.5 py-1.5 rounded-lg bg-[#C5A880]/10 border border-[#C5A880]/30 text-[#C5A880] text-xs font-bold font-headline uppercase hover:bg-[#C5A880]/20 transition-colors flex items-center gap-1.5"
-            >
-              <span className="material-symbols-outlined text-sm">content_copy</span>
-              <span>Copy Credentials</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {onResetPassword && (
+                <button
+                  type="button"
+                  disabled={isResetting}
+                  onClick={handleResetPin}
+                  className="px-3 py-1.5 rounded-lg bg-[#C5A880] text-[#0A0A0B] text-xs font-bold font-headline uppercase hover:brightness-110 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-sm">refresh</span>
+                  <span>{isResetting ? 'Resetting...' : 'Reset PIN'}</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={copyCredentials}
+                className="px-3 py-1.5 rounded-lg bg-[#C5A880]/10 border border-[#C5A880]/30 text-[#C5A880] text-xs font-bold font-headline uppercase hover:bg-[#C5A880]/20 transition-colors flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">content_copy</span>
+                <span>Copy</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -242,3 +262,4 @@ export const MemberDetailModal: React.FC<MemberDetailModalProps> = ({
     </Modal>
   );
 };
+

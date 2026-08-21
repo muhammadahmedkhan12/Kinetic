@@ -262,6 +262,16 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const handleResetPassword = async (user_id: number): Promise<string> => {
+    try {
+      const res = await apiClient.post(`/admin/members/${user_id}/reset-password`);
+      return res.data.temp_password;
+    } catch (err: any) {
+      flashToast(err.response?.data?.detail || 'Failed to reset member PIN.', 'error');
+      throw err;
+    }
+  };
+
   const handleDeleteMember = async (user_id: number) => {
     if (!window.confirm(`Are you sure you want to delete member #${user_id}?`)) return;
     setActionLoadingId(`del_mem_${user_id}`);
@@ -563,6 +573,7 @@ export const AdminDashboardPage: React.FC = () => {
         }}
         memberDetails={selectedMemberDetails}
         onSendReminder={handleSendReminder}
+        onResetPassword={handleResetPassword}
         onDeleteMember={async (id) => {
           await handleDeleteMember(id);
           setIsMemberModalOpen(false);

@@ -43,3 +43,13 @@ class AdminMemberDetailResponseSchema(BaseModel):
     gender: str
     membership: Optional[MembershipReadSchema] = None
     payments: List[PaymentReadSchema] = []
+
+class AdminResetPasswordSchema(BaseModel):
+    new_password: Optional[str] = None
+
+class AdminResetPasswordResponseSchema(BaseModel):
+    success: bool = True
+    message: str
+    user_id: int
+    temp_password: str
+

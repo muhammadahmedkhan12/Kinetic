@@ -26,6 +26,7 @@ class PasswordResetRequestSchema(BaseModel):
 class PasswordResetConfirmSchema(BaseModel):
     token: str
     new_password: str
+    email: Optional[str] = None
 
 class PasswordChangeSchema(BaseModel):
     current_password: str

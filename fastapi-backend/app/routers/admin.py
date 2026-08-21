@@ -187,17 +187,49 @@ def delete_member_account(user_id: int, db: Session = Depends(get_db), _: User =
     db.commit()
     return MessageResponse(message=f"Member #{user_id} account deleted successfully.")
 
+from app.schemas.admin import (
+    AdminSummaryResponseSchema, StatsSummarySchema, PendingPaymentDetailSchema,
+    AdminMemberDetailResponseSchema, AdminResetPasswordSchema, AdminResetPasswordResponseSchema
+)
+
 def sanitize_password_for_admin(user: User) -> str:
     plain = getattr(user, 'plain_password', None)
-    if plain and isinstance(plain, str) and not plain.startswith("scrypt:") and not plain.startswith("$2b$") and not plain.startswith("$2a$") and len(plain) <= 20:
+    if plain and isinstance(plain, str) and not plain.startswith("scrypt:") and not plain.startswith("$2") and len(plain) <= 20:
         return plain
 
     raw_pwd = getattr(user, 'password', None)
-    if raw_pwd and isinstance(raw_pwd, str) and not raw_pwd.startswith("scrypt:") and not raw_pwd.startswith("$2b$") and not raw_pwd.startswith("$2a$") and len(raw_pwd) <= 20:
+    if raw_pwd and isinstance(raw_pwd, str) and not raw_pwd.startswith("scrypt:") and not raw_pwd.startswith("$2") and len(raw_pwd) <= 20:
         return raw_pwd
 
-    # Fallback to deterministic 6-digit numeric PIN
-    return str(100000 + (user.user_id * 7919) % 900000)
+    # If it's a secure hash, do not show a fake calculation; return placeholder
+    return "••••••"
+
+@router.post("/members/{user_id}/reset-password", response_model=AdminResetPasswordResponseSchema)
+def admin_reset_member_password(
+    user_id: int,
+    data: AdminResetPasswordSchema = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin)
+):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Member not found.")
+
+    new_pin = (data.new_password.strip() if data and data.new_password and data.new_password.strip() else None)
+    if not new_pin:
+        new_pin = "".join(random.choices("0123456789", k=6))
+
+    user.password = get_password_hash(new_pin)
+    user.plain_password = new_pin
+    db.commit()
+    db.refresh(user)
+
+    return AdminResetPasswordResponseSchema(
+        success=True,
+        message=f"Password for member '{user.name}' reset successfully.",
+        user_id=user.user_id,
+        temp_password=new_pin
+    )
 
 @router.get("/members/{user_id}", response_model=AdminMemberDetailResponseSchema)
 def get_admin_member_details(user_id: int, db: Session = Depends(get_db), _: User = Depends(require_admin)):
@@ -253,3 +285,4 @@ def send_member_payment_reminder(user_id: int, db: Session = Depends(get_db), _:
             print(f"[N8N Reminder Error] {e}")
 
     return MessageResponse(message=msg)
+

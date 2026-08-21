@@ -1,19 +1,25 @@
 import json
+from datetime import date, timedelta
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.core.database import Base, engine, SessionLocal
 from app.core.security import get_password_hash
+
+# Ensure all models are loaded for Base.metadata.create_all
 from app.models.user import User
 from app.models.membership_plan import MembershipPlan
 from app.models.trainer import Trainer
 from app.models.gym_class import GymClass
 from app.models.equipment_asset import EquipmentAsset
-from datetime import date, timedelta
+from app.models.membership import Membership
+from app.models.payment import Payment
+from app.models.attendance import Attendance
+from app.models.weight_log import WeightLog
+from app.models.class_booking import ClassBooking
 
 def migrate_missing_columns():
     db: Session = SessionLocal()
     try:
-        # Check dialect
         is_sqlite = engine.name == "sqlite"
         
         # 1. Migrate Users table columns
@@ -24,7 +30,10 @@ def migrate_missing_columns():
             "activity_level": "VARCHAR(50)" if not is_sqlite else "TEXT",
             "injuries": "VARCHAR(255)" if not is_sqlite else "TEXT",
             "experience_level": "VARCHAR(50)" if not is_sqlite else "TEXT",
-            "preferred_days_json": "NVARCHAR(MAX)" if not is_sqlite else "TEXT"
+            "preferred_days_json": "NVARCHAR(MAX)" if not is_sqlite else "TEXT",
+            "height": "FLOAT NULL" if not is_sqlite else "REAL NULL",
+            "is_onboarded": "INT DEFAULT 0",
+            "created_at": "DATETIME NULL" if not is_sqlite else "TEXT NULL"
         }
         
         for col_name, col_type in user_cols.items():
@@ -100,6 +109,7 @@ def init_db():
                 name="Head Admin",
                 email=admin_email,
                 password=get_password_hash("Admin@123"),
+                plain_password="Admin@123",
                 age=35,
                 phone="03001234567",
                 gender="Male",
@@ -111,7 +121,33 @@ def init_db():
             db.commit()
             print(f"Seeded default Admin User: {admin_email} / Admin@123")
 
-        # 3. Seed Trainers
+        # 3. Seed Default Member User
+        member_email = "ahmed1248khan@gmail.com"
+        member = db.query(User).filter(User.email == member_email).first()
+        if not member:
+            demo_member = User(
+                name="Ahmed Khan",
+                email=member_email,
+                password=get_password_hash("510226"),
+                plain_password="510226",
+                age=26,
+                phone="03362253299",
+                gender="Male",
+                role="member",
+                is_approved=1,
+                must_change_password=0,
+                is_onboarded=1,
+                height=178.0,
+                goals_json=json.dumps(["Muscle Building", "Strength Training"]),
+                activity_level="Intermediate",
+                experience_level="Intermediate",
+                preferred_days_json=json.dumps(["Monday", "Wednesday", "Friday"])
+            )
+            db.add(demo_member)
+            db.commit()
+            print(f"Seeded default Member User: {member_email} / 510226")
+
+        # 4. Seed Trainers
         if db.query(Trainer).count() == 0:
             trainers = [
                 Trainer(name="Alex Rivera", specialization="Strength & Conditioning", experience_years=7),
@@ -123,7 +159,7 @@ def init_db():
             db.commit()
             print("Seeded default Trainers.")
 
-        # 4. Seed Gym Classes
+        # 5. Seed Gym Classes
         if db.query(GymClass).count() == 0:
             alex = db.query(Trainer).filter(Trainer.name == "Alex Rivera").first()
             sarah = db.query(Trainer).filter(Trainer.name == "Sarah Connor").first()
@@ -140,7 +176,7 @@ def init_db():
             db.commit()
             print("Seeded default GymClasses.")
 
-        # 5. Seed Equipment Assets
+        # 6. Seed Equipment Assets
         if db.query(EquipmentAsset).count() == 0:
             today_str = date.today().isoformat()
             next_str = (date.today() + timedelta(days=90)).isoformat()
@@ -159,3 +195,4 @@ def init_db():
 
 if __name__ == "__main__":
     init_db()
+
