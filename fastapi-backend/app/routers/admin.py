@@ -31,7 +31,13 @@ router = APIRouter(prefix="/admin", tags=["Admin Portal Summary & Actions"])
 
 @router.get("/dashboard-summary", response_model=AdminSummaryResponseSchema)
 def get_admin_dashboard_summary(db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    from collections import Counter
+    from datetime import date, datetime
+    from app.models.membership import Membership
+
+    # 1. Bulk fetch all core tables in single queries
     all_users = db.query(User).all()
+    user_map = {u.user_id: u for u in all_users}
     members = [u for u in all_users if u.role == "member"]
     pending_members = [u for u in all_users if u.role == "member" and u.is_approved == 0]
     
@@ -39,10 +45,42 @@ def get_admin_dashboard_summary(db: Session = Depends(get_db), _: User = Depends
     pending_payments_raw = [p for p in payments if p.status and str(p.status).strip().lower() == "pending"]
     
     trainers = db.query(Trainer).all()
+    trainer_map = {t.id: t.name for t in trainers}
+    
     classes = db.query(GymClass).all()
     assets = db.query(EquipmentAsset).all()
+    
+    all_bookings = db.query(ClassBooking).all()
+    booking_counts = Counter(b.class_id for b in all_bookings)
 
-    # Calculate monthly revenue
+    # 2. Bulk fetch all memberships & batch update statuses in-memory
+    all_memberships = db.query(Membership).order_by(Membership.id.asc()).all()
+    latest_membership_by_user = {}
+    today = date.today()
+    needs_commit = False
+
+    for m_obj in all_memberships:
+        latest_membership_by_user[m_obj.user_id] = m_obj
+        if m_obj.status != "pending_approval" and m_obj.end_date:
+            try:
+                end_dt = datetime.strptime(m_obj.end_date, "%Y-%m-%d").date()
+                days_overdue = (today - end_dt).days
+                if days_overdue <= 0:
+                    new_status = "active"
+                elif 1 <= days_overdue <= settings.GRACE_PERIOD_DAYS:
+                    new_status = "overdue"
+                else:
+                    new_status = "inactive"
+                if m_obj.status != new_status:
+                    m_obj.status = new_status
+                    needs_commit = True
+            except Exception:
+                pass
+
+    if needs_commit:
+        db.commit()
+
+    # 3. Calculate monthly revenue
     monthly_revenue = sum(float(p.amount) for p in payments if p.status == "completed" and p.amount is not None)
 
     stats = StatsSummarySchema(
@@ -53,10 +91,10 @@ def get_admin_dashboard_summary(db: Session = Depends(get_db), _: User = Depends
         monthly_revenue=monthly_revenue
     )
 
-    # Serialize pending payments
+    # 4. Serialize pending payments using in-memory user map
     pending_payments_data = []
     for p in pending_payments_raw:
-        mem = db.query(User).filter(User.user_id == p.user_id).first()
+        mem = user_map.get(p.user_id)
         pending_payments_data.append(PendingPaymentDetailSchema(
             id=p.id,
             user_id=p.user_id,
@@ -67,11 +105,11 @@ def get_admin_dashboard_summary(db: Session = Depends(get_db), _: User = Depends
             proof_file=p.proof_file
         ))
 
-    # Serialize classes with booked_count
+    # 5. Serialize classes using in-memory booking counts & trainer map
     res_classes = []
     for c in classes:
-        cnt = db.query(ClassBooking).filter(ClassBooking.class_id == c.id).count()
-        t_name = c.trainer.name if c.trainer else "Staff Instructor"
+        cnt = booking_counts.get(c.id, 0)
+        t_name = trainer_map.get(c.trainer_id, "Staff Instructor")
         res_classes.append(GymClassReadSchema(
             id=c.id,
             trainer_id=c.trainer_id,
@@ -83,12 +121,10 @@ def get_admin_dashboard_summary(db: Session = Depends(get_db), _: User = Depends
             booked_count=cnt
         ))
 
-    from app.models.membership import Membership
-
+    # 6. Serialize members with in-memory latest membership lookup
     serialized_members = []
     for m in members:
-        check_and_expire_memberships(m.user_id, db)
-        membership = db.query(Membership).filter(Membership.user_id == m.user_id).order_by(Membership.id.desc()).first()
+        membership = latest_membership_by_user.get(m.user_id)
         mem_schema = MembershipReadSchema.from_orm(membership) if membership else None
         m_dict = UserReadSchema.from_orm(m).model_dump()
         m_dict['membership'] = mem_schema
@@ -96,8 +132,7 @@ def get_admin_dashboard_summary(db: Session = Depends(get_db), _: User = Depends
 
     serialized_pending_members = []
     for m in pending_members:
-        check_and_expire_memberships(m.user_id, db)
-        membership = db.query(Membership).filter(Membership.user_id == m.user_id).order_by(Membership.id.desc()).first()
+        membership = latest_membership_by_user.get(m.user_id)
         mem_schema = MembershipReadSchema.from_orm(membership) if membership else None
         m_dict = UserReadSchema.from_orm(m).model_dump()
         m_dict['membership'] = mem_schema
