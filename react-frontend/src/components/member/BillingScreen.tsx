@@ -142,7 +142,7 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
               </h3>
             </div>
             <div
-              className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider font-headline border flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider font-headline border flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                   : isPending
@@ -151,11 +151,13 @@ export const BillingScreen: React.FC<BillingScreenProps> = ({
               }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
+                className={`w-2 h-2 rounded-full shrink-0 ${
                   isActive ? 'bg-emerald-400' : isPending ? 'bg-amber-400' : 'bg-red-400'
                 }`}
               />
-              {membership?.status ? membership.status.replace('_', ' ') : 'NO MEMBERSHIP'}
+              <span className="whitespace-nowrap">
+                {membership?.status ? membership.status.replace('_', ' ') : 'NO MEMBERSHIP'}
+              </span>
             </div>
           </div>
 
