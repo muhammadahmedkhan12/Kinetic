@@ -16,7 +16,7 @@ def test_login_blocked_pending_account(client):
     assert res.status_code == 403
     assert "Access pending" in res.json()["detail"]
 
-def test_signup_creates_pending_user(client):
+def test_signup_route_is_disabled(client):
     payload = {
         "name": "New Signup",
         "email": "newmember@test.com",
@@ -24,6 +24,5 @@ def test_signup_creates_pending_user(client):
         "phone": "03112223344"
     }
     res = client.post("/api/v1/auth/signup", json=payload)
-    assert res.status_code == 200
-    data = res.json()
-    assert data["is_approved"] == 0
+    assert res.status_code in [404, 405]
+

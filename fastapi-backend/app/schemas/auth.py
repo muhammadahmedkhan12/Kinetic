@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 
 class TokenResponseSchema(BaseModel):
@@ -11,14 +11,6 @@ class TokenResponseSchema(BaseModel):
     is_approved: int = 1
     must_change_password: int = 0
     is_restricted: bool = False
-
-class UserSignupSchema(BaseModel):
-    name: str
-    email: EmailStr
-    password: str
-    phone: Optional[str] = None
-    age: Optional[int] = 0
-    gender: Optional[str] = "Male"
 
 class PasswordResetRequestSchema(BaseModel):
     identifier: str  # email or phone

@@ -7,11 +7,11 @@ from app.core.database import get_db
 from app.core.security import create_access_token
 from app.core.config import settings
 from app.schemas.auth import (
-    TokenResponseSchema, UserSignupSchema, PasswordResetRequestSchema,
+    TokenResponseSchema, PasswordResetRequestSchema,
     PasswordResetConfirmSchema, MessageResponse
 )
 from app.schemas.user import UserReadSchema
-from app.services.auth_service import authenticate_user, register_user
+from app.services.auth_service import authenticate_user
 from app.services.membership_service import check_and_expire_memberships
 from app.models.user import User
 from app.core.security import get_password_hash
@@ -37,11 +37,6 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
         must_change_password=user.must_change_password or 0,
         is_restricted=is_restricted
     )
-
-@router.post("/signup", response_model=UserReadSchema)
-def signup(signup_data: UserSignupSchema, db: Session = Depends(get_db)):
-    user = register_user(db, signup_data)
-    return user
 
 @router.post("/request-password-reset", response_model=MessageResponse)
 def request_password_reset(data: PasswordResetRequestSchema, db: Session = Depends(get_db)):
