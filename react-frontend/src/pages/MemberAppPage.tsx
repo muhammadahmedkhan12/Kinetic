@@ -29,8 +29,8 @@ export const MemberAppPage: React.FC = () => {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   // Auth Forms state
-  const [identifier, setIdentifier] = useState('ahmed1248khan@gmail.com');
-  const [password, setPassword] = useState('510226');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
 
   const { login } = useAuth();
@@ -120,7 +120,9 @@ export const MemberAppPage: React.FC = () => {
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#19191D] border border-white/10 text-on-surface text-sm focus:outline-none focus:border-primary"
+              placeholder="e.g. member@kineticgym.com or 03001234567"
+              autoComplete="username"
+              className="w-full px-4 py-3 rounded-xl bg-[#19191D] border border-white/10 text-on-surface text-sm focus:outline-none focus:border-primary placeholder:text-zinc-600"
               required
             />
           </div>
@@ -133,7 +135,9 @@ export const MemberAppPage: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#19191D] border border-white/10 text-on-surface text-sm focus:outline-none focus:border-primary"
+              placeholder="Enter your PIN or password"
+              autoComplete="current-password"
+              className="w-full px-4 py-3 rounded-xl bg-[#19191D] border border-white/10 text-on-surface text-sm focus:outline-none focus:border-primary placeholder:text-zinc-600"
               required
             />
           </div>
