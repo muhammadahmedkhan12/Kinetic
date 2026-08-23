@@ -48,7 +48,7 @@
 | **Database & ORM** | SQLAlchemy ORM, Microsoft Azure SQL Server, SQLite Fallback Engine |
 | **AI Integration** | Google GenAI SDK (`gemini-2.5-flash`, `gemini-2.0-flash`), Google AI Studio |
 | **Security & Auth** | OAuth2 Password Bearer, JWT Tokens (HS256), Werkzeug / Passlib Password Hashing |
-| **Deployment** | Vercel (Frontend & PWA), Azure / Linux Server (Backend REST API) |
+| **Deployment** | Vercel (Frontend & PWA), Railway (Backend REST API), Microsoft Azure (SQL Database) |
 
 ---
 
