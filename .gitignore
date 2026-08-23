@@ -1,3 +1,9 @@
+# Environment Variables & Secrets
+.env
+*.env
+.env.*
+!.env.example
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -16,6 +22,11 @@ react-frontend/dist/
 *.db
 admin_dashboard_original_reference.zip
 Kinetic_design.zip
+
+# Media & Video Render scratch files
+scratch/
+*.mp4
+*.mp3
 
 # System & IDE files
 .DS_Store
